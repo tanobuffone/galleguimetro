@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  ws-postgres:
+    image: postgres:latest
+    container_name: ws-postgres
+    environment:
+      - POSTGRES_DB=galleguimetro
+      - POSTGRES_USER=galleguimetro_user
+      - POSTGRES_PASSWORD=galleguimetro_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - galleguimetro_network
+
+  ws-qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ws-qdrant
+    ports:
+      - "7333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - galleguimetro_network
+
+volumes:
+  postgres_data:
+  qdrant_data:
+
+networks:
+  galleguimetro_network:
+    driver: bridge
