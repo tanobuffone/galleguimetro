@@ -1,0 +1,4 @@
+# Dependencias para el DDE Bridge (instalar en Python de WINDOWS, no WSL)
+pywin32>=306
+requests>=2.31.0
+websocket-client>=1.7.0

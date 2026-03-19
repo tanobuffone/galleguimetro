@@ -1,24 +1,26 @@
-version: '3.8'
-
 services:
   ws-postgres:
-    image: postgres:latest
-    container_name: ws-postgres
+    image: postgres:16-alpine
+    container_name: galleguimetro-postgres
     environment:
-      - POSTGRES_DB=galleguimetro
-      - POSTGRES_USER=galleguimetro_user
-      - POSTGRES_PASSWORD=galleguimetro_password
+      POSTGRES_DB: ${POSTGRES_DB:-galleguimetro}
+      POSTGRES_USER: ${POSTGRES_USER:-galleguimetro_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-galleguimetro_password}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d
     networks:
       - galleguimetro_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U galleguimetro_user -d galleguimetro"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   ws-qdrant:
     image: qdrant/qdrant:latest
-    container_name: ws-qdrant
+    container_name: galleguimetro-qdrant
     ports:
       - "7333:6333"
     volumes:

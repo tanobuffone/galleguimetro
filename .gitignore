@@ -181,8 +181,8 @@ static/uploads/
 # yarn.lock
 # pnpm-lock.yaml
 
-# Memory bank files (should be committed)
-# memory-bank/**
+# Memory bank files
+memory-bank/
 
-# Clinerules (should be committed)
-# .clinerules/**
+# Clinerules
+.clinerules/

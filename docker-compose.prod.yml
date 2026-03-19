@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: galleguimetro-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-galleguimetro}
+      POSTGRES_USER: ${POSTGRES_USER:-galleguimetro_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-galleguimetro_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: galleguimetro-qdrant
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: galleguimetro-backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-galleguimetro_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-galleguimetro}
+      SECRET_KEY: ${SECRET_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      QDRANT_URL: http://qdrant:6333
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: galleguimetro-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  qdrant_data:
+
+networks:
+  app_network:
+    driver: bridge
